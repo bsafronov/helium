@@ -75,11 +75,11 @@ model User {
 
 model Group {
     id          String  @id @default(auto()) @map("_id") @db.ObjectId
-    urlName     String? @unique @default(uuid())
     title       String
+    urlName     String? @unique @default(uuid())
     description String?
     avatar      String?
-    isPublic    Boolean @default(true)
+    isPublic    Boolean @default(false)
 
     userIDs String[] @db.ObjectId
     users   User[]   @relation("groups", fields: [userIDs], references: [id])
