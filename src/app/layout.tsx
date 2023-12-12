@@ -5,6 +5,8 @@ import { cookies } from "next/headers";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/toaster";
+import { Menu } from "./_components/menu";
+import { ThemeProvider } from "~/providers/theme.provider";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -23,12 +25,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru">
+    <html lang="ru" suppressHydrationWarning>
       <body className={`font-sans ${inter.variable}`}>
-        <TRPCReactProvider cookies={cookies().toString()}>
-          <Toaster />
-          {children}
-        </TRPCReactProvider>
+        <ThemeProvider>
+          <TRPCReactProvider cookies={cookies().toString()}>
+            <Toaster />
+            <div className="container flex border-x">
+              <Menu />
+              <main className="grow">{children}</main>
+            </div>
+          </TRPCReactProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
