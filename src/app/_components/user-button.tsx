@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { PROFILE } from "~/consts/routes";
 
 type Props = {
   user: Session["user"];
@@ -30,24 +31,22 @@ export function UserButton({ user }: Props) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem>
-            <Link href={"/profile"} className="flex items-center gap-4">
+            <Link href={PROFILE.href} className="flex items-center gap-4">
               <Settings className="h-4 w-4" />
               Профиль
             </Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => signOut()}>
-            <Link
-              href={"/profile"}
-              className="text-destructive flex items-center gap-4"
-            >
-              <LogOut className="h-4 w-4" />
-              Выйти
-            </Link>
+          <DropdownMenuItem
+            onClick={() => signOut()}
+            className="flex items-center gap-4 text-destructive"
+          >
+            <LogOut className="h-4 w-4" />
+            Выйти
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <div className="flex w-full flex-col">
-        <span className="text-muted-foreground text-xs">@{user.name}</span>
+        <span className="text-xs text-muted-foreground">@{user.name}</span>
         <span className="w-[12rem] truncate text-sm">{user.email}</span>
       </div>
     </div>

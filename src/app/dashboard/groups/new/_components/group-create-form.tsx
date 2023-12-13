@@ -13,6 +13,9 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
+import { api } from "~/trpc/react";
+import { useRouter } from "next/navigation";
+import { toast } from "~/components/ui/use-toast";
 
 const schema = z.object({
   title: z.string().min(3, { message: "Слишком короткое название!" }),
@@ -21,6 +24,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 export function GroupCreateForm() {
+  const router = useRouter();
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -28,8 +32,25 @@ export function GroupCreateForm() {
     },
   });
 
-  const onSubmit = (data: Schema) => {
-    console.log(data);
+  const { mutateAsync: createGroup } = api.group.create.useMutation({
+    onSuccess: (newGroup) => {
+      router.push(`/dashboard/groups/${newGroup.urlName}`);
+    },
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        description: error.message,
+      });
+    },
+  });
+
+  const onSubmit = async (data: Schema) => {
+    const { title } = data;
+    try {
+      await createGroup({
+        title,
+      });
+    } catch (e) {}
   };
 
   return (

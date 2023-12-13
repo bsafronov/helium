@@ -50,6 +50,7 @@ model VerificationToken {
 
 model User {
     id            String    @id @default(auto()) @map("_id") @db.ObjectId
+    username      String    @unique @default(uuid())
     name          String?
     email         String?   @unique
     emailVerified DateTime?
@@ -69,6 +70,53 @@ model User {
     createdForms   Form[]
     uploadedImages Image[]
 
+    subscribedTo Subscription[] @relation("subsBy")
+    subscribedBy Subscription[] @relation("subsTo")
+
+    chatIDs String[] @db.ObjectId
+    chats   Chat[]   @relation("chatUsers", fields: [chatIDs], references: [id])
+
+    chatsAdminIDs String[] @db.ObjectId
+    chatsAdmin    Chat[]   @relation("chatAdmins", fields: [chatsAdminIDs], references: [id])
+
+    messages Message[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    subscribedToId String @db.ObjectId
+    subscribedTo   User   @relation("subsTo", fields: [subscribedToId], references: [id])
+
+    subscribedById String @db.ObjectId
+    subscribedBy   User   @relation("subsBy", fields: [subscribedById], references: [id])
+}
+
+model Chat {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+
+    userIDs String[] @db.ObjectId
+    users   User[]   @relation("chatUsers", fields: [userIDs], references: [id])
+
+    adminIDs String[] @db.ObjectId
+    admins   User[]   @relation("chatAdmins", fields: [adminIDs], references: [id])
+
+    messages Message[]
+}
+
+model Message {
+    id   String @id @default(auto()) @map("_id") @db.ObjectId
+    body String
+
+    createdById String @db.ObjectId
+    createdBy   User   @relation(fields: [createdById], references: [id])
+
+    chatId String @db.ObjectId
+    chat   Chat   @relation(fields: [chatId], references: [id])
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
@@ -76,7 +124,7 @@ model User {
 model Group {
     id          String  @id @default(auto()) @map("_id") @db.ObjectId
     title       String
-    urlName     String? @unique @default(uuid())
+    urlName     String  @unique @default(uuid())
     description String?
     avatar      String?
     isPublic    Boolean @default(false)

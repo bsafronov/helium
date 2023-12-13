@@ -8,6 +8,11 @@ export const MAIN: Route = {
   href: "/",
 };
 
+export const DASHBOARD: Route = {
+  label: "Панель управления",
+  href: "/dashboard",
+};
+
 export const AUTH: Route = {
   label: "Авторизация",
   href: "/auth",
@@ -28,7 +33,12 @@ export const GROUPS: Route = {
   href: "/groups",
 };
 
+export const MY_GROUPS: Route = {
+  label: "Мои группы",
+  href: "/dashboard/groups",
+};
+
 export const NEW_GROUP: Route = {
   label: "Создание группы",
-  href: "/groups/new",
+  href: "/dashboard/groups/new",
 };
