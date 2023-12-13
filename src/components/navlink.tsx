@@ -16,7 +16,7 @@ export function Navlink({ href, icon: Icon, label, className }: Props) {
       href={href}
       className={cn(
         buttonVariants({ variant: "ghost", size: "sm" }),
-        "w-full justify-start gap-2 rounded-none font-normal",
+        "w-full justify-start gap-2 rounded-none font-normal transition-none",
         className,
       )}
     >

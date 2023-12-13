@@ -3,10 +3,11 @@ import "~/styles/globals.css";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 
-import { TRPCReactProvider } from "~/trpc/react";
 import { Toaster } from "~/components/ui/toaster";
-import { Menu } from "./_components/menu";
 import { ThemeProvider } from "~/providers/theme.provider";
+import { TRPCReactProvider } from "~/trpc/react";
+import { Navbar } from "./_components/navbar/navbar";
+import { Header } from "./_components/header/header";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -31,8 +32,11 @@ export default function RootLayout({
           <TRPCReactProvider cookies={cookies().toString()}>
             <Toaster />
             <div className="container flex border-x">
-              <Menu />
-              <main className="grow">{children}</main>
+              <Navbar />
+              <div className="flex grow flex-col">
+                <Header />
+                <main className="grow">{children}</main>
+              </div>
             </div>
           </TRPCReactProvider>
         </ThemeProvider>

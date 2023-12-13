@@ -5,8 +5,8 @@ export default function Page() {
   return (
     <>
       <Heading
-        title="Группы сообщества"
-        subtitle="Здесь отображены публичные группы"
+        title="Мои сообщения"
+        subtitle="Здесь отображены мои сообщения"
         icon={UserRound}
       />
     </>
