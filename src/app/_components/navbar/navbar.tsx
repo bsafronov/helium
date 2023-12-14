@@ -35,6 +35,7 @@ export function Navbar() {
         </div>
         <Navlink href="/people" label="Люди" icon={UserRound} />
         <Navlink href="/groups" label="Группы" icon={UserRound} />
+        <Navlink href="/market" label="Торговая площадка" icon={UserRound} />
       </div>
     </div>
   );
