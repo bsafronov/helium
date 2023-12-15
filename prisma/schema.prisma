@@ -69,12 +69,15 @@ model User {
     updatedAt DateTime @updatedAt
 }
 
-// ***
-// CHAT 1 TO 1
-// ***
+enum ChatType {
+    SINGLE
+    PUBLIC
+    PRIVATE
+}
 
 model Chat {
-    id String @id @default(auto()) @map("_id") @db.ObjectId
+    id   String   @id @default(auto()) @map("_id") @db.ObjectId
+    type ChatType
 
     userIDs String[] @db.ObjectId
     users   User[]   @relation("chat", fields: [userIDs], references: [id])

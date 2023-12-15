@@ -6,8 +6,6 @@ import { cookies } from "next/headers";
 import { Toaster } from "~/components/ui/toaster";
 import { ThemeProvider } from "~/providers/theme.provider";
 import { TRPCReactProvider } from "~/trpc/react";
-import { Navbar } from "./_components/navbar/navbar";
-import { Header } from "./_components/header/header";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
@@ -31,13 +29,7 @@ export default function RootLayout({
         <ThemeProvider>
           <TRPCReactProvider cookies={cookies().toString()}>
             <Toaster />
-            <div className="container flex border-x">
-              <Navbar />
-              <div className="flex grow flex-col">
-                <Header />
-                <main className="grow">{children}</main>
-              </div>
-            </div>
+            {children}
           </TRPCReactProvider>
         </ThemeProvider>
       </body>
