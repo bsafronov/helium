@@ -50,7 +50,7 @@ model VerificationToken {
 
 model User {
     id            String    @id @default(auto()) @map("_id") @db.ObjectId
-    username      String    @unique @default(uuid())
+    username      String?   @unique
     name          String?
     email         String?   @unique
     emailVerified DateTime?
@@ -59,74 +59,6 @@ model User {
     accounts Account[]
     sessions Session[]
 
-    chatIDs String[] @db.ObjectId
-    chats   Chat[]   @relation("chat", fields: [chatIDs], references: [id])
-
-    messages  Message[]  @relation("message")
-    reactions Reaction[] @relation("reaction")
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 }
-
-enum ChatType {
-    SINGLE
-    PUBLIC
-    PRIVATE
-}
-
-model Chat {
-    id   String   @id @default(auto()) @map("_id") @db.ObjectId
-    type ChatType
-
-    userIDs String[] @db.ObjectId
-    users   User[]   @relation("chat", fields: [userIDs], references: [id])
-
-    messages Message[]
-    images   Image[]
-
-    createdAt DateTime @default(now())
-}
-
-model Message {
-    id      String @id @default(auto()) @map("_id") @db.ObjectId
-    content String
-
-    chatId String @db.ObjectId
-    chat   Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
-
-    senderId String @db.ObjectId
-    sender   User   @relation("message", fields: [senderId], references: [id])
-
-    reactionIDs String[]   @db.ObjectId
-    reactions   Reaction[]
-
-    images Image[]
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
-model Reaction {
-    id String @id @default(auto()) @map("_id") @db.ObjectId
-
-    senderId String @db.ObjectId
-    sender   User   @relation("reaction", fields: [senderId], references: [id])
-
-    messageId String  @db.ObjectId
-    message   Message @relation(fields: [messageId], references: [id])
-}
-
-model Image {
-    id String @id @default(auto()) @map("_id") @db.ObjectId
-
-    messageId String  @db.ObjectId
-    message   Message @relation(fields: [messageId], references: [id])
-
-    chatId String @db.ObjectId
-    chat   Chat   @relation(fields: [chatId], references: [id])
-}
-
-// 
-// 
-// 
