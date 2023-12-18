@@ -6,7 +6,7 @@ import { cn } from "~/lib/utils";
 type Props = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   className?: string;
 };
 
@@ -20,7 +20,7 @@ export function Navlink({ href, icon: Icon, label, className }: Props) {
         className,
       )}
     >
-      <Icon className="h-4 w-4" />
+      {Icon && <Icon className="h-4 w-4" />}
       {label}
     </Link>
   );

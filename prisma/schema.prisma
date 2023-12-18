@@ -90,6 +90,9 @@ model Chat {
     messages Message[]
     images   MessageImage[]
 
+    firstUserId  String? @db.ObjectId
+    secondUserId String? @db.ObjectId
+
     // Пользователи чата
     userIDs String[] @db.ObjectId
     users   User[]   @relation("UserChats", fields: [userIDs], references: [id])
@@ -107,6 +110,8 @@ model Chat {
     friendTo    Chat[]   @relation("FriendChats", fields: [friendToIDs], references: [id])
 
     createdAt DateTime @default(now())
+
+    @@unique([firstUserId, secondUserId])
 }
 
 model Message {
