@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const messageRouter = createTRPCRouter({
-  getMany: protectedProcedure
+  getManyUserToUser: protectedProcedure
     .input(
       z.object({
         chatId: z.string(),
@@ -12,6 +12,13 @@ export const messageRouter = createTRPCRouter({
       return ctx.db.message.findMany({
         where: {
           chatId: input.chatId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
         },
       });
     }),

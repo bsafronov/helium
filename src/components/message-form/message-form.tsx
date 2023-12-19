@@ -56,7 +56,7 @@ export function MessageForm({ chatId }: Props) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex items-end gap-4 border-t px-4 py-2"
+        className="flex items-center gap-2 px-2 py-2"
       >
         <FormField
           control={form.control}
@@ -65,13 +65,13 @@ export function MessageForm({ chatId }: Props) {
             <TextareaAutoSize
               onKeyDown={(e) => handleKeyDown(e)}
               autoFocus
+              placeholder="Написать сообщение..."
               {...field}
-              className="rounded-none border-none p-0"
             />
           )}
         />
         <button>
-          <SendHorizonal className="hover:text-blue-500" />
+          <SendHorizonal className="text-border hover:text-blue-500" />
         </button>
       </form>
     </Form>

@@ -46,8 +46,7 @@ model VerificationToken {
 }
 
 model User {
-    id String @id @default(auto()) @map("_id") @db.ObjectId
-
+    id            String    @id @default(auto()) @map("_id") @db.ObjectId
     name          String?
     email         String?   @unique
     emailVerified DateTime?
@@ -55,126 +54,142 @@ model User {
     age           Int?
     description   String?
     sex           SexType?
+    createdAt     DateTime  @default(now())
+    updatedAt     DateTime  @updatedAt
 
-    accounts         Account[]
-    sessions         Session[]
-    messages         Message[]
-    messageReactions MessageReaction[]
-    commentReactions CommentReaction[]
+    // *** Аккаунт ***
+    accounts Account[]
+    sessions Session[]
 
-    // На кого подписан пользователь
+    // *** Пользователи ***
     subscriberIDs String[] @db.ObjectId
     subscribers   User[]   @relation("UserSubscriptions", fields: [subscriberIDs], references: [id])
+    followerIDs   String[] @db.ObjectId
+    followers     User[]   @relation("UserSubscriptions", fields: [followerIDs], references: [id])
 
-    // Подписчики пользователя
-    followerIDs String[] @db.ObjectId
-    followers   User[]   @relation("UserSubscriptions", fields: [followerIDs], references: [id])
-
-    // Чаты, в которых пользователь участвует
-    chatIDs String[] @db.ObjectId
-    chats   Chat[]   @relation("UserChats", fields: [chatIDs], references: [id])
-
-    // Чаты, которые пользователь администрирует
+    // *** Чаты ***
+    chatIDs      String[] @db.ObjectId
+    chats        Chat[]   @relation("UserChats", fields: [chatIDs], references: [id])
     chatAdminIDs String[] @db.ObjectId
     chatsAdmin   Chat[]   @relation("UserChatsAdmin", fields: [chatAdminIDs], references: [id])
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    // *** Сообщения ***
+    messages         Message[]         @relation("Messages")
+    seenMessageIDs   String[]          @db.ObjectId
+    seenMessages     Message[]         @relation("SeenMessages", fields: [seenMessageIDs], references: [id])
+    messageReactions MessageReaction[]
+
+    // *** Комментарии ***
+    comments         Comment[]         @relation("UserComments")
+    commentReactions CommentReaction[]
 }
 
 model Chat {
-    id       String         @id @default(auto()) @map("_id") @db.ObjectId
-    title    String?
-    isPublic Boolean        @default(false)
-    type     ChatType
-    messages Message[]
-    images   MessageImage[]
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    type      ChatType
+    title     String?
+    isPublic  Boolean  @default(false)
+    createdAt DateTime @default(now())
 
-    firstUserId  String? @db.ObjectId
-    secondUserId String? @db.ObjectId
+    // *** Пользователи ***
+    firstUserId  String?  @db.ObjectId
+    secondUserId String?  @db.ObjectId
+    userIDs      String[] @db.ObjectId
+    users        User[]   @relation("UserChats", fields: [userIDs], references: [id])
+    adminIDs     String[] @db.ObjectId
+    admins       User[]   @relation("UserChatsAdmin", fields: [adminIDs], references: [id])
 
-    // Пользователи чата
-    userIDs String[] @db.ObjectId
-    users   User[]   @relation("UserChats", fields: [userIDs], references: [id])
-
-    // Администраторы чата (группы или канала)
-    adminIDs String[] @db.ObjectId
-    admins   User[]   @relation("UserChatsAdmin", fields: [adminIDs], references: [id])
-
-    // Дружеские чаты
+    // *** Чаты ***
     friendChatIDs String[] @db.ObjectId
     friendChats   Chat[]   @relation("FriendChats", fields: [friendChatIDs], references: [id])
+    friendToIDs   String[] @db.ObjectId
+    friendTo      Chat[]   @relation("FriendChats", fields: [friendToIDs], references: [id])
 
-    // Чаты, которым текущий чат является дружеским
-    friendToIDs String[] @db.ObjectId
-    friendTo    Chat[]   @relation("FriendChats", fields: [friendToIDs], references: [id])
+    // *** Сообщения ***
+    messages Message[] @relation("ChatMessages")
 
-    createdAt DateTime @default(now())
+    // *** Файлы ***
+    images MessageImage[]
 
     @@unique([firstUserId, secondUserId])
 }
 
 model Message {
-    id        String            @id @default(auto()) @map("_id") @db.ObjectId
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
     content   String
-    images    MessageImage[]
-    reactions MessageReaction[]
-    comments  Comment[]
-
-    chatId String @db.ObjectId
-    chat   Chat   @relation(fields: [chatId], references: [id])
-
-    userId String @db.ObjectId
-    user   User   @relation(fields: [userId], references: [id])
-
-    // Если сообщение является ответом на другое сообщение
-    replyToId String?  @db.ObjectId
-    replyTo   Message? @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-    // Ответы на сообщение
-    replies Message[] @relation("MessageReplies")
-
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+
+    // *** Пользователи ***
+    userId    String   @db.ObjectId
+    user      User     @relation("Messages", fields: [userId], references: [id])
+    seenByIDs String[] @db.ObjectId
+    seenBy    User[]   @relation("SeenMessages", fields: [seenByIDs], references: [id])
+
+    // *** Чаты ***
+    chatId String @db.ObjectId
+    chat   Chat   @relation("ChatMessages", fields: [chatId], references: [id])
+
+    // *** Сообщения ***
+    replyToId String?   @db.ObjectId
+    replyTo   Message?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    replies   Message[] @relation("MessageReplies")
+
+    // *** Реакции ***
+    reactions MessageReaction[]
+
+    // *** Комментарии ***
+    comments Comment[]
+
+    // *** Файлы ***
+    images MessageImage[]
 }
 
 model MessageReaction {
     id   String @id @default(auto()) @map("_id") @db.ObjectId
     code String
 
+    // *** Пользователи ***
     userId String @db.ObjectId
     user   User   @relation(fields: [userId], references: [id])
 
+    // *** Сообщения ***
     messageId String  @db.ObjectId
     message   Message @relation(fields: [messageId], references: [id])
 }
 
 model Comment {
-    id        String            @id @default(auto()) @map("_id") @db.ObjectId
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
     content   String
-    reactions CommentReaction[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
+    // *** Пользователи ***
+    senderId String @db.ObjectId
+    sender   User   @relation("UserComments", fields: [senderId], references: [id])
+
+    // *** Сообщения ***
     messageId String  @db.ObjectId
     message   Message @relation(fields: [messageId], references: [id])
 
-    // Если комментарий является ответом на другой комментарий
-    replyToId String?  @db.ObjectId
-    replyTo   Comment? @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    // *** Комментарии ***
+    replyToId String?   @db.ObjectId
+    replyTo   Comment?  @relation("CommentReplies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    replies   Comment[] @relation("CommentReplies")
 
-    // Ответы на комментарий
-    replies Comment[] @relation("CommentReplies")
-
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    // *** Реакции ***
+    reactions CommentReaction[]
 }
 
 model CommentReaction {
     id   String @id @default(auto()) @map("_id") @db.ObjectId
     code String
 
+    // *** Пользователи ***
     userId String @db.ObjectId
     user   User   @relation(fields: [userId], references: [id])
 
+    // *** Комментарии ***
     commentId String  @db.ObjectId
     comment   Comment @relation(fields: [commentId], references: [id])
 }
@@ -183,11 +198,13 @@ model MessageImage {
     id  String @id @default(auto()) @map("_id") @db.ObjectId
     url String
 
-    messageId String  @db.ObjectId
-    message   Message @relation(fields: [messageId], references: [id])
-
+    // *** Чаты ***
     chatId String @db.ObjectId
     chat   Chat   @relation(fields: [chatId], references: [id])
+
+    // *** Сообщения ***
+    messageId String  @db.ObjectId
+    message   Message @relation(fields: [messageId], references: [id])
 }
 
 enum ChatType {

@@ -1,5 +1,9 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Avatar } from "~/components/avatar";
+import { cn } from "~/lib/utils";
 import { type RouterOutputs } from "~/trpc/shared";
 
 type Props = {
@@ -8,6 +12,8 @@ type Props = {
 };
 
 export function ChatItem({ chat, currentUserId }: Props) {
+  const pathname = usePathname();
+
   const otherUserId =
     currentUserId === chat.firstUserId ? chat.secondUserId : chat.firstUserId;
 
@@ -42,13 +48,25 @@ export function ChatItem({ chat, currentUserId }: Props) {
     }
   };
 
+  const isActive = pathname === link();
+
   return (
     <li>
-      <Link href={link()} className="flex px-2 py-2 hover:bg-emerald-500/20">
+      <Link
+        href={link()}
+        className={cn("relative flex w-full px-2 py-2 hover:bg-primary/10")}
+      >
         <Avatar image={avatar()} size="sm" />
-        <div className="ml-2 flex flex-col text-xs">
-          <span>{title()}</span>
-          <span className="text-muted-foreground">Последнее сообщение</span>
+        {isActive && (
+          <div className="absolute bottom-0 left-0 top-0 w-0.5 bg-muted-foreground" />
+        )}
+        <div className="ml-2 flex w-full min-w-0 flex-col text-xs">
+          <span className="truncate">{title()}</span>
+          <div className="flex w-full">
+            <span className="grow truncate text-muted-foreground">
+              {chat.messages[0]?.content}
+            </span>
+          </div>
         </div>
       </Link>
     </li>
