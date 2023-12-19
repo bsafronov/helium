@@ -9,6 +9,8 @@ import { z } from "zod";
 import { api } from "~/trpc/react";
 import { Form, FormField } from "../ui/form";
 import { TextareaAutoSize } from "../ui/textarea";
+import { useAuth } from "~/hooks/use-auth";
+
 const schema = z.object({
   content: z.string().min(1),
 });
@@ -21,6 +23,7 @@ type Props = {
 
 export function MessageForm({ chatId }: Props) {
   const router = useRouter();
+  const currentUserId = useAuth()?.id;
 
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
@@ -28,16 +31,55 @@ export function MessageForm({ chatId }: Props) {
       content: "",
     },
   });
+  const ctx = api.useUtils();
+  const messages = ctx.message.getManyUserToUser;
 
   const { mutate: sendMessage } = api.message.create.useMutation({
-    onSuccess: () => {
+    onMutate: (newMessage) => {
+      if (!currentUserId) return;
+      const prevMessages = ctx.message.getManyUserToUser.getData({ chatId });
+      messages.setData({ chatId }, (old) => {
+        return [
+          ...(old ?? []),
+          {
+            chatId,
+            content: newMessage.content,
+            createdAt: new Date(),
+            id: new Date().toISOString(),
+            replyToId: null,
+            seenByIDs: [],
+            updatedAt: new Date(),
+            user: {
+              id: currentUserId,
+            },
+            userId: currentUserId,
+            pending: true,
+          },
+        ];
+      });
       form.reset();
+      window.scrollTo(0, document.body.scrollHeight);
+      return {
+        prevMessages,
+      };
+    },
+    onSuccess: () => {
       router.refresh();
+    },
+    onError: (err, newMessage, context) => {
+      messages.setData({ chatId }, context?.prevMessages);
+    },
+    onSettled: async () => {
+      await messages.invalidate({ chatId });
     },
   });
 
   const onSubmit = (data: Schema) => {
     const { content } = data;
+
+    if (content.trim().length === 0) {
+      return;
+    }
 
     sendMessage({
       chatId,

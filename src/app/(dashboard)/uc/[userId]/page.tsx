@@ -6,6 +6,7 @@ import { MessageForm } from "~/components/message-form/message-form";
 import { PageHeader } from "~/components/page-header";
 import { api } from "~/trpc/server";
 import { MessageList } from "./_components/message-list";
+import { auth } from "~/lib/auth";
 
 type Props = {
   params: {
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default async function Page({ params: { userId } }: Props) {
+  const currentUser = await auth();
   const otherUserInitials = await api.user.getOneInitials.query({ userId });
 
   if (!otherUserInitials) {
@@ -37,7 +39,7 @@ export default async function Page({ params: { userId } }: Props) {
           </div>
         </div>
       </PageHeader>
-      <MessageList chatId={chat.id} />
+      <MessageList chatId={chat.id} currentUser={currentUser} />
       <MessageForm chatId={chat.id} />
     </ChatWrapper>
   );

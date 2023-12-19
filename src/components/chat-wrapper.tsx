@@ -3,5 +3,5 @@ type Props = {
 };
 
 export function ChatWrapper({ children }: Props) {
-  return <div className="flex h-full flex-col">{children}</div>;
+  return <div className="flex h-full max-h-screen flex-col">{children}</div>;
 }
