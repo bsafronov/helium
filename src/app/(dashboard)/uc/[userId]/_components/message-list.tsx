@@ -1,13 +1,11 @@
 "use client";
 
-import { format } from "date-fns";
-import { useMemo } from "react";
+import { useRef } from "react";
 import { LoaderScreen } from "~/components/loader-screen";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { type Auth } from "~/lib/auth";
 import { formatChatDate } from "~/lib/date";
-import { api } from "~/trpc/react";
-import { type RouterOutputs } from "~/trpc/shared";
+import { useMessages } from "../_hooks/use-messages";
 import { MessageItem } from "./message-item";
 
 type Props = {
@@ -15,31 +13,11 @@ type Props = {
   currentUser: Auth;
 };
 
-type Message = RouterOutputs["message"]["getManyUserToUser"][number];
-
 export function MessageList({ chatId, currentUser }: Props) {
-  const { data: messages } = api.message.getManyUserToUser.useQuery({ chatId });
+  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messages = useMessages({ chatId, bottomRef });
 
-  const sortedMessages = useMemo(() => {
-    if (!messages) return null;
-
-    const messagesByDate: Record<string, Message[]> = {};
-
-    messages.forEach((message) => {
-      const day = format(new Date(message.createdAt), "yyyy-MM-dd");
-      const hasRecords = day in messagesByDate;
-
-      if (hasRecords) {
-        messagesByDate[day]?.push(message);
-      } else {
-        messagesByDate[day] = [message];
-      }
-    });
-
-    return messagesByDate;
-  }, [messages]);
-
-  if (!sortedMessages) {
+  if (!messages) {
     return <LoaderScreen />;
   }
 
@@ -53,7 +31,7 @@ export function MessageList({ chatId, currentUser }: Props) {
       />
       <ScrollArea className="h-max">
         <div className="relative z-10 mt-2 flex grow flex-col self-end">
-          {Object.entries(sortedMessages).map(([day, messages]) => (
+          {Object.entries(messages).map(([day, messages]) => (
             <div key={day}>
               <div className="relative flex justify-center px-4 text-center">
                 <div className="absolute inset-0 flex items-center">
@@ -75,9 +53,9 @@ export function MessageList({ chatId, currentUser }: Props) {
                   />
                 ))}
               </ul>
-              {/* <AlwaysScrollToBottom items={messages} /> */}
             </div>
           ))}
+          <div ref={bottomRef} />
         </div>
       </ScrollArea>
     </div>

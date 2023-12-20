@@ -1,13 +1,12 @@
 import { format } from "date-fns";
-import { Check, CheckCheck } from "lucide-react";
+import { CheckCheck } from "lucide-react";
 import { type Auth } from "~/lib/auth";
 import { cn } from "~/lib/utils";
 import { type RouterOutputs } from "~/trpc/shared";
+import { motion } from "framer-motion";
 
 type Props = {
-  message: RouterOutputs["message"]["getManyUserToUser"][number] & {
-    pending?: boolean;
-  };
+  message: RouterOutputs["message"]["getManyUserToUser"][number];
   currentUser: Auth;
   prevMessageSenderId?: string;
   nextMessageSenderId?: string;
@@ -22,14 +21,13 @@ export function MessageItem({
   const prevSameSender = prevMessageSenderId === message.userId;
   const nextSameSender = nextMessageSenderId === message.userId;
   const isOwn = message.userId === currentUser.id;
-  const hasChanges =
-    message.createdAt.toISOString() !== message.updatedAt.toISOString();
   const isSeen =
     message.seenByIDs.filter((id) => id !== currentUser.id).length > 0;
-  const CheckStatus = message.pending ? Check : CheckCheck;
 
   return (
-    <li
+    <motion.li
+      viewport={{ once: true }}
+      onViewportEnter={() => console.log(message.content)}
       className={cn(
         "mt-2 flex",
         isOwn && "justify-end",
@@ -48,10 +46,10 @@ export function MessageItem({
       >
         <p className="text-sm">{message.content}</p>
         <div className="relative ml-auto inline-block flex items-center justify-end gap-2 self-end pl-4 text-xs text-muted-foreground">
-          {hasChanges && <span>изменено </span>}
+          {/* {hasChanges && <span>изменено </span>} */}
           {format(new Date(message.createdAt), "HH:mm")}
           {isOwn && (
-            <CheckStatus
+            <CheckCheck
               className={cn("inline-block h-4 w-4", {
                 "text-sky-500": isSeen,
               })}
@@ -59,6 +57,6 @@ export function MessageItem({
           )}
         </div>
       </div>
-    </li>
+    </motion.li>
   );
 }

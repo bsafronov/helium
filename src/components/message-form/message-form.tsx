@@ -1,15 +1,14 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SendHorizonal } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader2, SendHorizonal } from "lucide-react";
 import { type KeyboardEvent } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { api } from "~/trpc/react";
 import { Form, FormField } from "../ui/form";
 import { TextareaAutoSize } from "../ui/textarea";
-import { useAuth } from "~/hooks/use-auth";
+import { toast } from "../ui/use-toast";
 
 const schema = z.object({
   content: z.string().min(1),
@@ -22,55 +21,22 @@ type Props = {
 };
 
 export function MessageForm({ chatId }: Props) {
-  const router = useRouter();
-  const currentUserId = useAuth()?.id;
-
   const form = useForm<Schema>({
     resolver: zodResolver(schema),
     defaultValues: {
       content: "",
     },
   });
-  const ctx = api.useUtils();
-  const messages = ctx.message.getManyUserToUser;
 
-  const { mutate: sendMessage } = api.message.create.useMutation({
-    onMutate: (newMessage) => {
-      if (!currentUserId) return;
-      const prevMessages = ctx.message.getManyUserToUser.getData({ chatId });
-      messages.setData({ chatId }, (old) => {
-        return [
-          ...(old ?? []),
-          {
-            chatId,
-            content: newMessage.content,
-            createdAt: new Date(),
-            id: new Date().toISOString(),
-            replyToId: null,
-            seenByIDs: [],
-            updatedAt: new Date(),
-            user: {
-              id: currentUserId,
-            },
-            userId: currentUserId,
-            pending: true,
-          },
-        ];
-      });
+  const { mutate: sendMessage, isLoading } = api.message.create.useMutation({
+    onMutate: () => {
       form.reset();
-      window.scrollTo(0, document.body.scrollHeight);
-      return {
-        prevMessages,
-      };
     },
-    onSuccess: () => {
-      router.refresh();
-    },
-    onError: (err, newMessage, context) => {
-      messages.setData({ chatId }, context?.prevMessages);
-    },
-    onSettled: async () => {
-      await messages.invalidate({ chatId });
+    onError: () => {
+      toast({
+        variant: "destructive",
+        description: "Возникла ошибка при отправке сообщения.",
+      });
     },
   });
 
@@ -112,8 +78,12 @@ export function MessageForm({ chatId }: Props) {
             />
           )}
         />
-        <button>
-          <SendHorizonal className="text-border hover:text-blue-500" />
+        <button disabled={isLoading}>
+          {isLoading ? (
+            <Loader2 className="animate-spin text-sky-500" />
+          ) : (
+            <SendHorizonal className="text-border hover:text-sky-500" />
+          )}
         </button>
       </form>
     </Form>

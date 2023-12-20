@@ -4,9 +4,9 @@ import { Avatar } from "~/components/avatar";
 import { ChatWrapper } from "~/components/chat-wrapper";
 import { MessageForm } from "~/components/message-form/message-form";
 import { PageHeader } from "~/components/page-header";
+import { auth } from "~/lib/auth";
 import { api } from "~/trpc/server";
 import { MessageList } from "./_components/message-list";
-import { auth } from "~/lib/auth";
 
 type Props = {
   params: {

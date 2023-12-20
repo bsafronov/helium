@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { pusherServer } from "~/lib/pusher";
 
 export const messageRouter = createTRPCRouter({
   getManyUserToUser: protectedProcedure
@@ -30,12 +31,56 @@ export const messageRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.db.message.create({
+      const { chatId, content } = input;
+      const message = await ctx.db.message.create({
         data: {
-          chatId: input.chatId,
-          content: input.content,
+          chatId: chatId,
+          content: content,
           userId: ctx.session.user.id,
+          seenByIDs: [ctx.session.user.id],
         },
       });
+
+      const chat = await ctx.db.chat.findUnique({
+        where: {
+          id: chatId,
+        },
+        include: {
+          users: true,
+        },
+      });
+
+      await pusherServer.trigger(chatId, "messages:new", message);
+
+      chat?.users.map((user) => {
+        void pusherServer.trigger(user.id, "chat:update", {
+          id: chatId,
+          messages: [message],
+        });
+      });
+
+      return message;
+    }),
+  createSeen: protectedProcedure
+    .input(
+      z.object({
+        messageId: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { messageId } = input;
+      const message = await ctx.db.message.update({
+        where: {
+          id: messageId,
+        },
+        data: {
+          seenByIDs: {
+            push: ctx.session.user.id,
+          },
+        },
+      });
+
+      await pusherServer.trigger(message.chatId, "message:seen", message);
+      return message;
     }),
 });
