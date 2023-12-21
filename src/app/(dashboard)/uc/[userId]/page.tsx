@@ -7,6 +7,7 @@ import { PageHeader } from "~/components/page-header";
 import { auth } from "~/lib/auth";
 import { api } from "~/trpc/server";
 import { MessageList } from "./_components/message-list";
+import { UserStatus } from "./_components/user-status";
 
 type Props = {
   params: {
@@ -35,7 +36,7 @@ export default async function Page({ params: { userId } }: Props) {
           </Link>
           <div className="flex flex-col">
             <span className="text-sm">{name}</span>
-            <span className="text-xs text-muted-foreground">В сети</span>
+            <UserStatus userId={otherUserInitials.id} />
           </div>
         </div>
       </PageHeader>

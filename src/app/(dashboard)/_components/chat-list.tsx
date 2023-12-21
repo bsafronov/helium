@@ -1,12 +1,15 @@
-import { api } from "~/trpc/server";
+"use client";
+
+import { useAuth } from "~/hooks/use-auth";
+import { api } from "~/trpc/react";
 import { ChatItem } from "./chat-item";
-import { auth } from "~/lib/auth";
 
-export async function ChatList() {
-  const { chats } = await api.chat.getManyThisUser.query();
-  const { id } = await auth();
+export function ChatList() {
+  const { data } = api.chat.getManyThisUser.useQuery();
+  const chats = data?.chats ?? [];
+  const userId = useAuth()?.id;
 
-  if (chats.length === 0) {
+  if (chats?.length === 0 || !userId) {
     return null;
   }
 
@@ -17,7 +20,7 @@ export async function ChatList() {
       </div>
       <ul className="divide-y">
         {chats.map((chat) => (
-          <ChatItem key={chat.id} chat={chat} currentUserId={id} />
+          <ChatItem key={chat.id} chat={chat} currentUserId={userId} />
         ))}
       </ul>
     </div>

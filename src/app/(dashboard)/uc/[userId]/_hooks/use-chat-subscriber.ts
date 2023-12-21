@@ -10,6 +10,11 @@ type Props = {
   chatId: string;
 };
 
+type SeenMessagesSubscription = {
+  messageIDs: string[];
+  userId: string;
+};
+
 export function useChatSubscriber({ chatId }: Props) {
   const ctx = api.useUtils();
 
@@ -29,31 +34,43 @@ export function useChatSubscriber({ chatId }: Props) {
     );
   };
 
-  const handleSeenMessage = (message: UCMessage) => {
+  const handleSeenMessage = ({
+    messageIDs,
+    userId,
+  }: SeenMessagesSubscription) => {
     const currentMessages = ctx.message.getManyUserToUser.getData({
-      chatId: message.chatId,
+      chatId,
     });
+
     if (!currentMessages) return;
 
-    const isMessageInCache = find(currentMessages, { id: message.id });
-    if (isMessageInCache) return;
+    const updatedMessages = currentMessages.map((message) => {
+      if (!messageIDs.includes(message.id)) return message;
 
-    const updatedMessages = [...currentMessages, message];
-    ctx.message.getManyUserToUser.setData(
-      { chatId: message.chatId },
-      updatedMessages,
-    );
+      return {
+        ...message,
+        seenByIDs: [...message.seenByIDs, userId],
+      };
+    });
+
+    ctx.message.getManyUserToUser.setData({ chatId }, updatedMessages);
+  };
+
+  const handleTypingMessage = () => {
+    console.log("handleTypingMessage");
   };
 
   useEffect(() => {
     pusherClient.subscribe(chatId);
     pusherClient.bind("messages:new", handleNewMessage);
-    pusherClient.bind("message:seen", handleSeenMessage);
+    pusherClient.bind("messages:seen", handleSeenMessage);
+    pusherClient.bind("messages:typing", handleTypingMessage);
 
     return () => {
       pusherClient.unsubscribe(chatId);
       pusherClient.unbind("messages:new", handleNewMessage);
-      pusherClient.unbind("message:seen", handleSeenMessage);
+      pusherClient.unbind("messages:seen", handleSeenMessage);
+      pusherClient.unbind("messages:typing", handleTypingMessage);
     };
   }, []);
 }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { sortIds } from "~/lib/utils";
+import { pusherServer } from "~/lib/pusher";
 
 export const chatRouter = createTRPCRouter({
   getManyThisUser: protectedProcedure.query(({ ctx }) => {
@@ -56,7 +57,7 @@ export const chatRouter = createTRPCRouter({
         return chat;
       }
 
-      return ctx.db.chat.create({
+      const newChat = await ctx.db.chat.create({
         data: {
           firstUserId: firstId,
           secondUserId: secondId,
@@ -65,6 +66,22 @@ export const chatRouter = createTRPCRouter({
           },
           type: "ONE_TO_ONE",
         },
+        select: {
+          id: true,
+          type: true,
+          firstUserId: true,
+          secondUserId: true,
+          title: true,
+          users: {
+            take: 2,
+          },
+        },
       });
+
+      newChat.users.forEach((user) => {
+        void pusherServer.trigger(user.id, "chat:new", newChat);
+      });
+
+      return newChat;
     }),
 });

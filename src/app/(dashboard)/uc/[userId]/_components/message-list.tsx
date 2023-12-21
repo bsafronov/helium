@@ -7,6 +7,7 @@ import { type Auth } from "~/lib/auth";
 import { formatChatDate } from "~/lib/date";
 import { useMessages } from "../_hooks/use-messages";
 import { MessageItem } from "./message-item";
+import { useMessagesSeen } from "../_hooks/use-messages-seen";
 
 type Props = {
   chatId: string;
@@ -16,6 +17,7 @@ type Props = {
 export function MessageList({ chatId, currentUser }: Props) {
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const messages = useMessages({ chatId, bottomRef });
+  const { updateSeen } = useMessagesSeen({ chatId });
 
   if (!messages) {
     return <LoaderScreen />;
@@ -50,6 +52,7 @@ export function MessageList({ chatId, currentUser }: Props) {
                     currentUser={currentUser}
                     prevMessageSenderId={messages[index - 1]?.userId}
                     nextMessageSenderId={messages[index + 1]?.userId}
+                    updateSeen={updateSeen}
                   />
                 ))}
               </ul>

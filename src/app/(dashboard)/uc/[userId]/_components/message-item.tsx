@@ -10,6 +10,7 @@ type Props = {
   currentUser: Auth;
   prevMessageSenderId?: string;
   nextMessageSenderId?: string;
+  updateSeen: (id: string) => void;
 };
 
 export function MessageItem({
@@ -17,22 +18,30 @@ export function MessageItem({
   currentUser,
   prevMessageSenderId,
   nextMessageSenderId,
+  updateSeen,
 }: Props) {
   const prevSameSender = prevMessageSenderId === message.userId;
   const nextSameSender = nextMessageSenderId === message.userId;
   const isOwn = message.userId === currentUser.id;
-  const isSeen =
+  const isSeenByOther =
     message.seenByIDs.filter((id) => id !== currentUser.id).length > 0;
+  const isSeenByMe = isOwn || message.seenByIDs.includes(currentUser.id);
+
+  const handleUpdateSeen = () => {
+    if (isSeenByMe) return;
+    updateSeen(message.id);
+  };
 
   return (
     <motion.li
       viewport={{ once: true }}
-      onViewportEnter={() => console.log(message.content)}
+      onViewportEnter={handleUpdateSeen}
       className={cn(
         "mt-2 flex",
         isOwn && "justify-end",
         prevSameSender && "mt-[1px]",
       )}
+      onClick={() => console.log(message)}
     >
       <div
         className={cn(
@@ -51,7 +60,7 @@ export function MessageItem({
           {isOwn && (
             <CheckCheck
               className={cn("inline-block h-4 w-4", {
-                "text-sky-500": isSeen,
+                "text-sky-500": isSeenByOther,
               })}
             />
           )}

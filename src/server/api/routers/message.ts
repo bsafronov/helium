@@ -40,22 +40,18 @@ export const messageRouter = createTRPCRouter({
           seenByIDs: [ctx.session.user.id],
         },
       });
+      await pusherServer.trigger(chatId, "messages:new", message);
 
       const chat = await ctx.db.chat.findUnique({
         where: {
           id: chatId,
         },
-        include: {
-          users: true,
-        },
       });
 
-      await pusherServer.trigger(chatId, "messages:new", message);
-
-      chat?.users.map((user) => {
-        void pusherServer.trigger(user.id, "chat:update", {
-          id: chatId,
-          messages: [message],
+      chat?.userIDs.forEach((id) => {
+        void pusherServer.trigger(id, "chat:update", {
+          chatId,
+          message,
         });
       });
 
@@ -64,14 +60,17 @@ export const messageRouter = createTRPCRouter({
   createSeen: protectedProcedure
     .input(
       z.object({
-        messageId: z.string(),
+        chatId: z.string(),
+        messageIDs: z.array(z.string()),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const { messageId } = input;
-      const message = await ctx.db.message.update({
+      const { messageIDs, chatId } = input;
+      await ctx.db.message.updateMany({
         where: {
-          id: messageId,
+          id: {
+            in: messageIDs,
+          },
         },
         data: {
           seenByIDs: {
@@ -80,7 +79,11 @@ export const messageRouter = createTRPCRouter({
         },
       });
 
-      await pusherServer.trigger(message.chatId, "message:seen", message);
-      return message;
+      void pusherServer.trigger(chatId, "messages:seen", {
+        messageIDs,
+        userId: ctx.session.user.id,
+      });
+
+      return true;
     }),
 });

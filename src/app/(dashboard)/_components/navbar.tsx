@@ -1,14 +1,18 @@
 import { Navlink } from "~/components/navlink";
 import { ThemeSwitcher } from "~/components/theme-switcher";
-import { Logout } from "./logout";
 import { ChatList } from "./chat-list";
+import { Logout } from "./logout";
+import { UserAvatar } from "./user-avatar";
 
 export function Navbar() {
   return (
     <div className="h-screen min-w-[16rem] max-w-[16rem] border-r">
-      <div className="flex h-16 items-center gap-2 border-b px-4">
-        <ThemeSwitcher />
-        <Logout />
+      <div className="flex h-16 items-center justify-between gap-2 border-b px-2">
+        <UserAvatar />
+        <div className="flex gap-2">
+          <ThemeSwitcher />
+          <Logout />
+        </div>
       </div>
       <ChatList />
       <div className="border-b">
