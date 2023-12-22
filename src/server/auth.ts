@@ -7,8 +7,8 @@ import {
 import DiscordProvider from "next-auth/providers/discord";
 import GoogleProvider from "next-auth/providers/google";
 import YandexProvider from "next-auth/providers/yandex";
-
 import { env } from "~/env";
+
 import { db } from "~/server/db";
 
 /**

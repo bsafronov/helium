@@ -4,9 +4,9 @@ import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 
 import { Toaster } from "~/components/ui/toaster";
-import { ThemeProvider } from "~/providers/theme.provider";
 import { TRPCReactProvider } from "~/trpc/react";
-import { AuthProvider } from "~/providers/auth.provider";
+import { ThemeProvider } from "~/lib/next-themes";
+import { AuthProvider } from "~/lib/next-auth/provider";
 
 const inter = Inter({
   subsets: ["latin", "cyrillic"],
