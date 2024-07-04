@@ -8,7 +8,7 @@ export const Header = async () => {
   const { session } = await validateRequest();
 
   return (
-    <div className="sticky top-0 h-16 flex items-center border-b bg-background mb-8">
+    <div className="sticky top-0 h-16 flex items-center border-b bg-background mb-8 z-50">
       <Container className="flex justify-end">
         <div className="flex items-center gap-2">
           <ThemeSwitcher />

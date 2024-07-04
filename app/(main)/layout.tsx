@@ -10,7 +10,7 @@ export default async function Layout({ children }: Props) {
   return (
     <>
       <Header />
-      <Container className="grid grid-cols-4 gap-8">
+      <Container className="flex items-start gap-4 mb-8">
         <div className="flex flex-col gap-8">
           <Navbar />
         </div>
