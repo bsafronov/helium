@@ -5,7 +5,6 @@ import {
   integer,
   pgEnum,
   pgTable,
-  primaryKey,
   serial,
   text,
   timestamp,
@@ -60,10 +59,16 @@ export const usersTable = pgTable("users", {
     .notNull()
     .$defaultFn(() => sql`uuid_generate_v4()`),
   hashPassword: varchar("hash_password", { length: 256 }).notNull(),
+  firstName: varchar("first_name", { length: 256 }),
+  lastName: varchar("last_name", { length: 256 }),
+  age: integer("age"),
+  avatarId: integer("avatar_id").references(() => imagesTable.id),
+  placeOfWork: varchar("place_of_work", { length: 256 }),
+  city: varchar("city", { length: 256 }),
   isPrivateProfile: boolean("is_private_profile").notNull().default(false),
 });
 
-export const usersRelations = relations(usersTable, ({ many }) => ({
+export const usersRelations = relations(usersTable, ({ many, one }) => ({
   sessions: many(sessionsTable),
   posts: many(postsTable),
   reactions: many(reactionsTable),
@@ -78,6 +83,11 @@ export const usersRelations = relations(usersTable, ({ many }) => ({
   }),
   chats: many(chatsToUsersTable),
   messages: many(messagesTable),
+  seenPosts: many(postsSeenTable),
+  avatar: one(imagesTable, {
+    fields: [usersTable.avatarId],
+    references: [imagesTable.id],
+  }),
 }));
 
 export const followsTable = pgTable("follows", {
@@ -125,6 +135,7 @@ export const postsTable = pgTable("posts", {
   createdAt,
   updatedAt,
   userId,
+  isPublished: boolean("is_published").notNull().default(true),
   text: text("text"),
 });
 
@@ -136,13 +147,31 @@ export const postsRelations = relations(postsTable, ({ many, one }) => ({
     fields: [postsTable.userId],
     references: [usersTable.id],
   }),
+  seen: many(postsSeenTable),
   messagesReplies: many(messagesTable, { relationName: "messages-replies" }),
+}));
+
+export const postsSeenTable = pgTable("posts_seen", {
+  postId: integer("post_id").references(() => postsTable.id),
+  userId: integer("user_id").references(() => usersTable.id),
+});
+
+export const postsSeenRelations = relations(postsSeenTable, ({ one }) => ({
+  post: one(postsTable, {
+    fields: [postsSeenTable.postId],
+    references: [postsTable.id],
+  }),
+  user: one(usersTable, {
+    fields: [postsSeenTable.userId],
+    references: [usersTable.id],
+  }),
 }));
 
 export const imagesTable = pgTable("images", {
   id,
   createdAt,
-  postId,
+  postId: integer("post_id").references(() => postsTable.id),
+  chatId: integer("chat_id").references(() => chatsTable.id),
   messageId: integer("message_id").references(() => messagesTable.id),
   url: varchar("url", { length: 256 }).notNull(),
 });
@@ -152,6 +181,11 @@ export const imagesRelations = relations(imagesTable, ({ many, one }) => ({
     fields: [imagesTable.postId],
     references: [postsTable.id],
   }),
+  message: one(messagesTable, {
+    fields: [imagesTable.messageId],
+    references: [messagesTable.id],
+  }),
+  usedAsAvatarBy: many(usersTable, { relationName: "used_as_avatar_by" }),
 }));
 
 export const reactionsTable = pgTable("reactions", {
@@ -175,6 +209,10 @@ export const reactionsRelations = relations(reactionsTable, ({ one }) => ({
   comment: one(commentsTable, {
     fields: [reactionsTable.commentId],
     references: [commentsTable.id],
+  }),
+  message: one(messagesTable, {
+    fields: [reactionsTable.messageId],
+    references: [messagesTable.id],
   }),
 }));
 
@@ -210,10 +248,13 @@ export const commentsRelations = relations(commentsTable, ({ many, one }) => ({
 
 export const chatsTable = pgTable("chats", {
   id,
+  createdAt,
 });
 
 export const chatsRelations = relations(chatsTable, ({ many }) => ({
   messages: many(messagesTable),
+  users: many(chatsToUsersTable),
+  images: many(imagesTable),
 }));
 
 export const chatsToUsersTable = pgTable("chats_to_users", {
